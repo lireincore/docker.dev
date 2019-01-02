@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Error params format, try: dropdb DATABASE"
+    exit 1
+fi
+
+dir=$(dirname $(readlink -e $0))
+
+bash ${dir}/cmd postgres "psql -U \${POSTGRES_USER} -c \"DROP DATABASE IF EXISTS $1;\""

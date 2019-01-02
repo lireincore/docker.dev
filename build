@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+docker-compose stop
+
+host_group_id=$(id -g);
+host_user_id=$(id -u);
+#host_ip=$(ip -f inet addr show eth0 | grep -Po 'inet \K[\d.]+');
+
+export host_group_id host_user_id
+
+docker-compose up -d --build "$@"

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+#export $(cat ./.env | grep -v ^# | xargs)
+#update-docker-host() {
+#    # clear existing docker.local entry from /etc/hosts
+#    sudo sed -i '' '/[[:space:]]meta\.loc$/d' /etc/hosts
+
+#    # get ip of running machine
+#    export DOCKER_IP="$(echo ${DOCKER_HOST} | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')"
+
+#    # update /etc/hosts with docker machine ip
+#    [[ -n $DOCKER_IP ]] && sudo /bin/bash -c "echo \"${DOCKER_IP}   meta.loc\" >> /etc/hosts"
+#}
+#update-docker-host
+
+#прописывает хост при запуске и удаляет при остановке контейнера
+#sudo sed -i '1s;^;127.0.0.1    meta.loc\n;' /etc/hosts
+#trap 'sudo sed -i "/meta.loc/d" /etc/hosts' 2

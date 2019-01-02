@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Error params format, try: pg_dump DATABASE"
+    exit 1
+fi
+
+#date=`date '+%Y'-'%m'-'%d'`
+
+dir=$(dirname $(readlink -e $0))
+
+bash ${dir}/cmd postgres "cd /var/lib/postgresql/backup && pg_dump $1 -x -U \${POSTGRES_USER} -Fc -T 'logging*' -T 'reversions*' -T 'webhooks_logging*' > $1.gz"

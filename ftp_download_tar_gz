@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -lt 4 ]; then
+    echo "Error params format, try: ftp_download_tar_gz HOST USER PASSWORD PATH"
+    exit 1
+fi
+
+host=$1
+user=$2
+password=$3
+path=$4
+
+port=21
+
+dir=$(dirname $(readlink -e $0))
+bk_dir="${dir}/backup/postgres"
+
+#scp -P 22 ${user}@${host}:/${filename} ${bk_dir}
+
+curl -u ${user}:${password} ftp://${host}:${port}/${path} | tar -xz -C ${bk_dir}
+#wget -с --ftp-user=${user} --ftp-password=${password} ftp://${host}:${port}/${filename} -O - | tar -xz -C ${bk_dir}
+#ftp -in -u ftp://${user}:${password}@${host}:${port}/${filename} | tar -xz -C ${bk_dir}

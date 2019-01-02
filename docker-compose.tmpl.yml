@@ -1,0 +1,361 @@
+version: "3.7"
+
+services:
+  memcached:
+    container_name: "${COMPOSE_PROJECT_NAME}_memcached"
+    image: memcached:1.5-alpine
+    command: ["memcached", "-m", "256m"]
+    networks:
+      - web-net
+
+  redis:
+    container_name: "${COMPOSE_PROJECT_NAME}_redis"
+    image: redis:5.0-alpine
+    volumes:
+      - redis_data:/data:Z
+    networks:
+      - web-net
+
+  elasticsearch:
+    container_name: "${COMPOSE_PROJECT_NAME}_elasticsearch"
+    image: elasticsearch:6.4.2
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data:Z
+    networks:
+      - web-net
+
+  kibana:
+    container_name: "${COMPOSE_PROJECT_NAME}_kibana"
+    image: kibana:6.4.2
+    ports:
+      - 5601:5601
+    networks:
+      - web-net
+    depends_on:
+      - elasticsearch
+
+  postgres:
+    container_name: "${COMPOSE_PROJECT_NAME}_postgres"
+    image: postgres:11.1-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./backup/postgres:/var/lib/postgresql/backup:z
+      - postgres_data:/var/lib/postgresql/data:Z
+    networks:
+      - web-net
+
+  pgadmin:
+    container_name: "${COMPOSE_PROJECT_NAME}_pgadmin"
+    build:
+      context: ./containers/pgadmin
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    ports:
+      - 5050:5050
+    volumes:
+      - pgadmin_data:/pgadmin:Z
+    networks:
+      - web-net
+    depends_on:
+      - postgres
+
+  zookeeper:
+    container_name: "${COMPOSE_PROJECT_NAME}_zookeeper"
+    image: zookeeper:3.4
+    hostname: zookeeper
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888
+    networks:
+      - web-net
+    volumes:
+      - zookeeper_data:/data:Z
+      - zookeeper_datalog:/datalog:Z
+      - zookeeper_logs:/logs:Z
+
+  kafka:
+    container_name: "${COMPOSE_PROJECT_NAME}_kafka"
+    image: wurstmeister/kafka:2.11-0.11.0.3
+    hostname: kafka
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181/kafka
+      KAFKA_BROKER_ID: 1
+    ports:
+      - 9092:9092
+    networks:
+      - web-net
+    volumes:
+      - kafka_data:/kafka:Z
+      #- /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper
+
+  confluent-zookeeper:
+    container_name: "${COMPOSE_PROJECT_NAME}_confluent-zookeeper"
+    image: confluentinc/cp-zookeeper:5.0.1
+    hostname: confluent-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - confluent-zookeeper_data:/var/lib/zookeeper/data:Z
+      - confluent-zookeeper_log:/var/lib/zookeeper/log:Z
+      - confluent-zookeeper_secrets:/etc/zookeeper/secrets:Z
+    networks:
+      - web-net
+
+  confluent-kafka:
+    container_name: "${COMPOSE_PROJECT_NAME}_confluent-kafka"
+    image: confluentinc/cp-kafka:5.0.1
+    hostname: confluent-kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: confluent-zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://confluent-kafka:9092
+      KAFKA_ACKS: 'all'
+      KAFKA_ENABLE_IDEMPOTENCE: 'true'
+      #KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://confluent-kafka:9092,PLAINTEXT_HOST://localhost:29092
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      #KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      #KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      #CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: confluent-kafka:9092
+      #CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: confluent-zookeeper:2181
+      #CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      #CONFLUENT_METRICS_ENABLE: 'true'
+      #CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+    volumes:
+      - confluent-kafka_data:/var/lib/kafka/data:Z
+      - confluent-kafka_secrets:/etc/kafka/secrets:Z
+    networks:
+      - web-net
+    depends_on:
+      - confluent-zookeeper
+
+  confluent-schema:
+    container_name: "${COMPOSE_PROJECT_NAME}_confluent-schema"
+    image: confluentinc/cp-schema-registry:5.0.1
+    hostname: confluent-schema
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: confluent-schema
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: confluent-zookeeper:2181
+    volumes:
+      - confluent-schema_secrets:/etc/schema-registry/secrets:Z
+    networks:
+      - web-net
+    depends_on:
+      - confluent-zookeeper
+      - confluent-kafka
+
+  confluent-rest:
+    container_name: "${COMPOSE_PROJECT_NAME}_confluent-rest"
+    image: confluentinc/cp-kafka-rest:5.0.1
+    hostname: confluent-rest
+    environment:
+      KAFKA_REST_ZOOKEEPER_CONNECT: confluent-zookeeper:2181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://confluent-schema:8081
+      KAFKA_REST_HOST_NAME: confluent-rest
+      KAFKA_REST_BOOTSTRAP_SERVERS: confluent-kafka:9092
+    networks:
+      - web-net
+    depends_on:
+      - confluent-zookeeper
+      - confluent-kafka
+      - confluent-schema
+
+  confluent-control:
+    container_name: "${COMPOSE_PROJECT_NAME}_confluent-control"
+    image: confluentinc/cp-enterprise-control-center:5.0.1
+    hostname: confluent-control
+    environment:
+      CONTROL_CENTER_ZOOKEEPER_CONNECT: confluent-zookeeper:2181
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: confluent-kafka:9092
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS: 2
+      #CONTROL_CENTER_CONNECT_CLUSTER: confluent-connect:8083
+      #CONTROL_CENTER_KSQL_URL: confluent-ksql:8088
+      #CONTROL_CENTER_KSQL_ADVERTISED_URL: http://localhost:8088
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    ports:
+      - 9021:9021
+    volumes:
+      - confluent-control-center_data:/var/lib/confluent-control-center:Z
+    networks:
+      - web-net
+    depends_on:
+      - confluent-zookeeper
+      - confluent-kafka
+      - confluent-schema
+
+  node-cli:
+    container_name: "${COMPOSE_PROJECT_NAME}_node-cli"
+    build:
+      context: ./containers/node-cli
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    user: node
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - node-cli_yarn:/home/node/.yarn:Z
+      - node-cli_npm:/home/node/.npm:Z
+    networks:
+      - web-net
+
+  php-cli:
+    container_name: "${COMPOSE_PROJECT_NAME}_php-cli"
+    build:
+      context: ./containers/php-cli
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    environment:
+      XDEBUG_CONFIG: "remote_host=${DOCKER_HOST_IP}"
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+#    external_links:
+#      - nginx:project.loc
+    command: ["php", "-a"]
+    entrypoint: ["entrypoint.sh"]
+    user: www-data
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./containers/php-cli/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./containers/php-cli/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - php-cli_composer:/home/www-data/.composer:Z
+      - ~/.ssh:/home/www-data/.ssh:ro
+    networks:
+      - web-net
+
+  php-worker:
+    container_name: "${COMPOSE_PROJECT_NAME}_php-worker"
+    build:
+      context: ./containers/php-worker
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+#    external_links:
+#      - nginx:project.loc
+    entrypoint: ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]
+    user: www-data
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./containers/php-worker/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./containers/php-worker/supervisord.conf:/etc/supervisord.conf:ro
+      - ./containers/php-worker/conf:/etc/supervisor.d:ro
+    networks:
+      - web-net
+
+  php-fpm:
+    container_name: "${COMPOSE_PROJECT_NAME}_php-fpm"
+    build:
+      context: ./containers/php-fpm
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    environment:
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./containers/php-fpm/php.ini:/usr/local/etc/php/php.ini:ro
+    networks:
+      - web-net
+
+  nginx:
+    container_name: "${COMPOSE_PROJECT_NAME}_nginx"
+    build:
+      context: ./containers/nginx
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    command: ["nginx", "-g", "daemon off;"]
+    entrypoint: ["entrypoint.sh"]
+    ports:
+      - 80:80
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./log/nginx:/var/log/nginx:Z
+      - ./containers/nginx/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - ./containers/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./containers/nginx/conf:/etc/nginx/conf.d:ro
+    networks:
+      - web-net
+    depends_on:
+      - php-fpm
+
+volumes:
+  redis_data:
+    name: "${COMPOSE_PROJECT_NAME}_redis_data"
+  elasticsearch_data:
+    name: "${COMPOSE_PROJECT_NAME}_elasticsearch_data"
+  postgres_data:
+    name: "${COMPOSE_PROJECT_NAME}_postgres_data"
+  pgadmin_data:
+    name: "${COMPOSE_PROJECT_NAME}_pgadmin_data"
+  zookeeper_data:
+    name: "${COMPOSE_PROJECT_NAME}_zookeeper_data"
+  zookeeper_datalog:
+    name: "${COMPOSE_PROJECT_NAME}_zookeeper_datalog"
+  zookeeper_logs:
+    name: "${COMPOSE_PROJECT_NAME}_zookeeper_logs"
+  kafka_data:
+    name: "${COMPOSE_PROJECT_NAME}_kafka_data"
+  confluent-zookeeper_data:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-zookeeper_data"
+  confluent-zookeeper_log:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-zookeeper_log"
+  confluent-zookeeper_secrets:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-zookeeper_secrets"
+  confluent-kafka_data:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-kafka_data"
+  confluent-kafka_secrets:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-kafka_secrets"
+  confluent-schema_secrets:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-schema_secrets"
+  confluent-control-center_data:
+    name: "${COMPOSE_PROJECT_NAME}_confluent-control-center_data"
+  node-cli_yarn:
+    name: "${COMPOSE_PROJECT_NAME}_node-cli_yarn"
+  node-cli_npm:
+    name: "${COMPOSE_PROJECT_NAME}_node-cli_npm"
+  php-cli_composer:
+    name: "${COMPOSE_PROJECT_NAME}_php-cli_composer"
+
+networks:
+  web-net:
+    driver: bridge
