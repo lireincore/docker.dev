@@ -2,32 +2,15 @@
 
 set -euo pipefail
 
-container="php-cli"
-
 if [ $# -lt 2 ]; then
-    echo "Error params format, try: $container PROJECT COMMAND [OPTIONS]"
+    echo "Error params format, try: php-cli PROJECT COMMAND [OPTIONS]"
     exit 1
 fi
 
 dir=$(dirname $(readlink -e $0))
 
-export $(cat ${dir}/.env | grep -v ^# | xargs)
-
-project_dir=$(find "$SOURCE_DIR" -maxdepth 1 -type d -iname "$1" -exec basename {} \;)
-if [ -z "$project_dir" ]; then
-    project_dir=$(find "$SOURCE_DIR" -maxdepth 1 -type d -iname "$1*" -exec basename {} \;)
-    if [ -z "$project_dir" ]; then
-        echo "Project directory not found: ${TARGET_DIR}/$1"
-        exit 1
-    fi
-
-    count=$(echo "$project_dir" | wc -l)
-    if [ $count -ne 1 ]; then
-        echo "Project directory not unique: ${TARGET_DIR}/$1"
-        exit 1
-    fi
-fi
+project=$1
 
 shift
 
-bash ${dir}/cmd $container "cd ${TARGET_DIR}/$project_dir && $*"
+bash ${dir}/cli php-cli $project "$*"

@@ -11,6 +11,20 @@ RUN set -x \
     && adduser -u ${host_user_id} -G node -D -S node \
     && find / -user ${OLD_UID} -exec chown node {} \; \
     && find / -group ${OLD_GID} -exec chgrp node {} \; \
+    && mkdir /home/node/.yarn \
+    && mkdir /home/node/.npm \
+    && chown node:node /home/node/.yarn \
+    && chown node:node /home/node/.npm \
+    && apk update \
+    && apk add --no-cache --virtual .runtimeDeps \
+        pkgconfig \
+        autoconf \
+        automake \
+        libtool \
+        nasm \
+        build-base \
+        zlib-dev \
+    && npm install -g npm \
     && rm -rf /var/cache/apk/* /var/tmp/* /tmp/* \
     && node -v \
     && npm -v \

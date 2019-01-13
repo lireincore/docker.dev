@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -lt 3 ]; then
+    echo "Error params format, try: CONTAINER PROJECT COMMAND [OPTIONS]"
+    exit 1
+fi
+
+container=$1
+
+dir=$(dirname $(readlink -e $0))
+
+export $(cat ${dir}/.env | grep -v ^# | xargs)
+
+project_dir=$(find "$SOURCE_DIR" -maxdepth 1 -type d -iname "$2" -exec basename {} \;)
+if [ -z "$project_dir" ]; then
+    project_dir=$(find "$SOURCE_DIR" -maxdepth 1 -type d -iname "$2*" -exec basename {} \;)
+    if [ -z "$project_dir" ]; then
+        echo "Project directory not found: ${TARGET_DIR}/$2"
+        exit 1
+    fi
+
+    count=$(echo "$project_dir" | wc -l)
+    if [ $count -ne 1 ]; then
+        echo "Project directory not unique: ${TARGET_DIR}/$2"
+        exit 1
+    fi
+fi
+
+shift
+shift
+
+bash ${dir}/cmd $container "cd ${TARGET_DIR}/$project_dir && $*"
