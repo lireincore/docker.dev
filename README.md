@@ -11,8 +11,6 @@ cp docker-compose.tmpl.yml docker-compose.yml
 cp containers/nginx/tmpl/* containers/nginx/conf
 ```
 
-- разверните нужные проекты
-- настройте /etc/hosts
 - скопируйте в каталог containers/nginx/conf конфигурации используемых проектов
 - файл .env можно редактировать, если потребуется
 - файл docker-compose.yml можно редактировать, если потребуется

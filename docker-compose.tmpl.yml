@@ -57,6 +57,21 @@ services:
     networks:
       - web-net
 
+  mysql:
+    container_name: "${COMPOSE_PROJECT_NAME}_mysql"
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: dev
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql:Z
+    networks:
+      - web-net
+
   pgadmin:
     container_name: "${COMPOSE_PROJECT_NAME}_pgadmin"
     build:
@@ -325,6 +340,8 @@ volumes:
     name: "${COMPOSE_PROJECT_NAME}_elasticsearch_data"
   postgres_data:
     name: "${COMPOSE_PROJECT_NAME}_postgres_data"
+  mysql_data:
+    name: "${COMPOSE_PROJECT_NAME}_mysql_data"
   pgadmin_data:
     name: "${COMPOSE_PROJECT_NAME}_pgadmin_data"
   zookeeper_data:

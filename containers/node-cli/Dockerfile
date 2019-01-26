@@ -16,6 +16,8 @@ RUN set -x \
     && chown node:node /home/node/.yarn \
     && chown node:node /home/node/.npm \
     && apk update \
+    && apk add --no-cache --virtual .buildDeps \
+        tzdata \
     && apk add --no-cache --virtual .runtimeDeps \
         pkgconfig \
         autoconf \
@@ -25,6 +27,13 @@ RUN set -x \
         build-base \
         zlib-dev \
     && npm install -g npm \
+#    && npm install -g imagemin \
+#    && npm install -g gulp-imagemin \
+#    && npm install -g optipng-bin \
+    && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+    && echo Europe/Moscow > /etc/timezone \
+    && apk del \
+        .buildDeps \
     && rm -rf /var/cache/apk/* /var/tmp/* /tmp/* \
     && node -v \
     && npm -v \

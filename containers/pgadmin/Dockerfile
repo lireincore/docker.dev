@@ -16,6 +16,7 @@ RUN set -x \
         gcc \
         postgresql-dev \
         musl-dev \
+        tzdata \
     && apk add --no-cache --virtual .runtimeDeps \
         #postgresql-dev \
         postgresql-libs \
@@ -29,6 +30,8 @@ RUN set -x \
     && cp config.py config_local.py \
     && sed -i "s/SERVER_MODE = True/SERVER_MODE = False/g" config_local.py \
     && sed -i "s/DEFAULT_SERVER = 'localhost'/DEFAULT_SERVER = '0.0.0.0'/g" config_local.py \
+    && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+    && echo Europe/Moscow > /etc/timezone \
     && apk del \
         .buildDeps \
     && rm -rf /var/cache/apk/* /var/tmp/* /tmp/*

@@ -20,6 +20,7 @@ RUN set -x \
         libc-dev \
         make \
         re2c \
+        tzdata \
     && apk add --no-cache --virtual .buildDeps-postgres \
         postgresql-dev \
     && apk add --no-cache --virtual .buildDeps-intl \
@@ -66,7 +67,7 @@ RUN set -x \
     && apk add --no-cache --virtual .runtimeDeps-rdkafka \
         librdkafka \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ --with-webp-dir=/usr/include/ \
-    && docker-php-ext-install -j${NPROC} pgsql pdo_pgsql intl opcache pcntl gd exif zip soap \
+    && docker-php-ext-install -j${NPROC} pgsql pdo_pgsql pdo_mysql intl opcache pcntl gd exif zip soap \
     && pecl config-set php_ini /usr/local/etc/php/php.ini \
     && pear config-set php_ini /usr/local/etc/php/php.ini \
     && pecl install gmagick-beta \
@@ -91,6 +92,8 @@ RUN set -x \
     && docker-php-ext-enable redis \
     && docker-php-ext-enable xdebug \
 #    && docker-php-ext-enable pthreads \
+    && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+    && echo Europe/Moscow > /etc/timezone \
     && apk del \
         .buildDeps \
         .buildDeps-postgres \
