@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -lt 5 ]; then
-    echo "Error params format, try: ftp_download HOST USER PASSWORD PATH BACKUP_DIR"
+    echo "Error params format, try: ftp_download HOST USER PASSWORD PATH BACKUP_DIR [ARCHIVE_TYPE={bz2|gz|tar|tar.bz2|tar.gz}]"
     exit 1
 fi
 
@@ -14,8 +14,33 @@ path=$4
 bk_dir=$5
 port=21
 
-cd ${bk_dir}
-#scp -P 22 ${user}@${host}:/${filename} ${bk_dir}
-curl -O -u ${user}:${password} ftp://${host}:${port}/${path}
-#wget -с --ftp-user=${user} --ftp-password=${password} ftp://${host}:${port}/${filename} -O - | tar -x -C ${bk_dir}
-#ftp -in -u ftp://${user}:${password}@${host}:${port}/${filename} | tar -x -C ${bk_dir}
+if [ $# -gt 5 ]; then
+    if [ $6 = bz2 ]; then
+        cd ${bk_dir}
+        curl -u ${user}:${password} ftp://${host}:${port}/${path} | bzip2 -d
+    elif [ $6 = gz ]; then
+        cd ${bk_dir}
+        curl -u ${user}:${password} ftp://${host}:${port}/${path} | gzip -d
+    elif [ $6 = tar ]; then
+        curl -u ${user}:${password} ftp://${host}:${port}/${path} | tar -x -C ${bk_dir}
+        #scp -P 22 ${user}@${host}:/${filename} ${bk_dir}
+        #wget -с --ftp-user=${user} --ftp-password=${password} ftp://${host}:${port}/${filename} -O - | tar -x -C ${bk_dir}
+        #ftp -in -u ftp://${user}:${password}@${host}:${port}/${filename} | tar -x -C ${bk_dir}
+    elif [ $6 = tar.bz2 ]; then
+        curl -u ${user}:${password} ftp://${host}:${port}/${path} | tar -xj -C ${bk_dir}
+        #scp -P 22 ${user}@${host}:/${filename} ${bk_dir}
+        #wget -с --ftp-user=${user} --ftp-password=${password} ftp://${host}:${port}/${filename} -O - | tar -xj -C ${bk_dir}
+        #ftp -in -u ftp://${user}:${password}@${host}:${port}/${filename} | tar -xj -C ${bk_dir}
+    elif [ $6 = tar.gz ]; then
+        curl -u ${user}:${password} ftp://${host}:${port}/${path} | tar -xz -C ${bk_dir}
+        #scp -P 22 ${user}@${host}:/${filename} ${bk_dir}
+        #wget -с --ftp-user=${user} --ftp-password=${password} ftp://${host}:${port}/${filename} -O - | tar -xz -C ${bk_dir}
+        #ftp -in -u ftp://${user}:${password}@${host}:${port}/${filename} | tar -xz -C ${bk_dir}
+    else
+        echo "Unknown archive type, try: bz2 | gz | tar | tar.bz2 | tar.gz"
+        exit 1
+    fi
+else
+    cd ${bk_dir}
+    curl -O -u ${user}:${password} ftp://${host}:${port}/${path}
+fi
