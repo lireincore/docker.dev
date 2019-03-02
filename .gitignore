@@ -1,5 +1,6 @@
 .idea
 /backup/postgres/*
+/backup/mysql/*
 /log/nginx/*
 /containers/nginx/conf/*
 *.env
