@@ -1,4 +1,4 @@
-FROM node:11.6-alpine
+FROM node:11.10-alpine
 
 ARG host_group_id
 ARG host_user_id

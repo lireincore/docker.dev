@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -ne 1 ]; then
-    echo "Error params format, try: dropdb DATABASE"
+    echo "Error params format, try: pg_dropdb DATABASE"
     exit 1
 fi
 

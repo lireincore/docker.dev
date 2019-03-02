@@ -44,10 +44,12 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 ./cmd {CONTAINER} {COMMAND}
 
 #создать базу
-./createdb {DB_NAME}
+./pg_createdb {DB_NAME}
+./my_createdb {DB_NAME}
 
 #удалить базу
-./dropdb {DB_NAME}
+./pg_dropdb {DB_NAME}
+./my_dropdb {DB_NAME}
 
 #создать резервную копию базы
 ./pg_dump {DB_NAME}
@@ -55,9 +57,11 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 #восстановить базу из резервной копии
 ./pg_restore {DB_NAME}
 
-#выполнить команду в терминале postgres
+#выполнить команду в терминале БД
 ./psql {COMMAND}
+./mysql {COMMAND}
 
-#работать с терминалом postgres
+#работать с терминалом БД
 ./psql
+./mysql
 ```

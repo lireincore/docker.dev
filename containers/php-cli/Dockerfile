@@ -1,4 +1,4 @@
-FROM php:7.2-cli-alpine3.8
+FROM php:7.3-cli-alpine3.9
 
 ARG host_group_id
 ARG host_user_id
@@ -31,6 +31,8 @@ RUN set -x \
         libjpeg-turbo-dev \
         libpng-dev \
         libwebp-dev \
+    && apk add --no-cache --virtual .buildDeps-zip \
+        libzip-dev \
     && apk add --no-cache --virtual .buildDeps-soap \
         libxml2-dev \
     && apk add --no-cache --virtual .buildDeps-gmagick \
@@ -56,6 +58,8 @@ RUN set -x \
         libjpeg-turbo \
         libpng \
         libwebp \
+    && apk add --no-cache --virtual .runtimeDeps-zip \
+        libzip \
     && apk add --no-cache --virtual .runtimeDeps-gmagick \
         libtool \
         libgomp \
@@ -67,7 +71,7 @@ RUN set -x \
     && apk add --no-cache --virtual .runtimeDeps-rdkafka \
         librdkafka \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ --with-webp-dir=/usr/include/ \
-    && docker-php-ext-install -j${NPROC} pgsql pdo_pgsql pdo_mysql intl opcache pcntl gd exif zip soap \
+    && docker-php-ext-install -j${NPROC} pgsql pdo_pgsql pdo_mysql mysqli intl opcache pcntl gd exif zip soap \
     && pecl config-set php_ini /usr/local/etc/php/php.ini \
     && pear config-set php_ini /usr/local/etc/php/php.ini \
     && pecl install gmagick-beta \
@@ -75,7 +79,7 @@ RUN set -x \
     && pecl install memcached \
     && pecl install rdkafka \
     && pecl install redis \
-    && pecl install xdebug \
+    && pecl install xdebug-beta \
     && docker-php-ext-enable gmagick \
 #    && docker-php-ext-enable imagick \
     && docker-php-ext-enable memcached \
@@ -94,6 +98,7 @@ RUN set -x \
         .buildDeps-postgres \
         .buildDeps-intl \
         .buildDeps-gd \
+        .buildDeps-zip \
         .buildDeps-soap \
         .buildDeps-gmagick \
 #        .buildDeps-imagick \
