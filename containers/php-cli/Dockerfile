@@ -79,7 +79,7 @@ RUN set -x \
     && pecl install memcached \
     && pecl install rdkafka \
     && pecl install redis \
-    && pecl install xdebug-beta \
+    && pecl install xdebug \
     && docker-php-ext-enable gmagick \
 #    && docker-php-ext-enable imagick \
     && docker-php-ext-enable memcached \

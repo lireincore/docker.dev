@@ -79,7 +79,7 @@ RUN set -x \
     && pecl install memcached \
     && pecl install rdkafka \
     && pecl install redis \
-    && pecl install xdebug-beta \
+    && pecl install xdebug \
 #    && cd / \
 #    && git clone https://github.com/krakjoe/pthreads.git \
 #    && cd pthreads \
