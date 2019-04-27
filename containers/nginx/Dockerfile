@@ -1,4 +1,4 @@
-FROM nginx:1.15-alpine
+FROM nginx:1.16-alpine
 
 ARG host_group_id
 ARG host_user_id
