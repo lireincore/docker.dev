@@ -19,7 +19,7 @@ for dir_name in $dir_names
 do
     path_part=$(find "${SOURCE_DIR}${project_sub_path}" -maxdepth 1 -type d -iname "$dir_name" -exec basename {} \;)
     if [ -z "$path_part" ]; then
-        path_part=$(find "${SOURCE_DIR}${project_sub_path}" -maxdepth 1 -type d -iname "$dir_name*" -exec basename {} \;)
+        path_part=$(find "${SOURCE_DIR}${project_sub_path}" -maxdepth 1 -type d -iname "*$dir_name*" -exec basename {} \;)
         if [ -z "$path_part" ]; then
             if [ -z "$project_sub_path" ]; then
                 echo "Project directory not found: ${TARGET_DIR}/${dir_name}"

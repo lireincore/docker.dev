@@ -22,17 +22,8 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 ### Команды
 
 ``` bash
-./composer {PROJECT_NAME} {COMMAND}
-
-./symfony {PROJECT_NAME} {COMMAND}
-
-./yii {PROJECT_NAME} {COMMAND}
-
-./yarn {PROJECT_NAME} {COMMAND}
-
-./npm {PROJECT_NAME} {COMMAND}
-
-./webpack {PROJECT_NAME} {COMMAND}
+#выполнить команду в контейнере
+./cmd {CONTAINER} {COMMAND}
 
 #выполнить команду в контейнере php-cli (в папке проекта)
 ./php-cli {PROJECT_NAME} {COMMAND}
@@ -40,8 +31,15 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 #выполнить команду в контейнере node-cli (в папке проекта)
 ./node-cli {PROJECT_NAME} {COMMAND}
 
-#выполнить команду в контейнере
-./cmd {CONTAINER} {COMMAND}
+#быстрые команды
+./composer {PROJECT_NAME} {COMMAND}
+./symfony {PROJECT_NAME} {COMMAND}
+./yii {PROJECT_NAME} {COMMAND}
+./yarn {PROJECT_NAME} {COMMAND}
+./npm {PROJECT_NAME} {COMMAND}
+./webpack {PROJECT_NAME} {COMMAND}
+./encore {PROJECT_NAME} {COMMAND}
+./phpunit {PROJECT_NAME} {COMMAND}
 
 #создать базу
 ./pg_createdb {DB_NAME}
@@ -51,11 +49,18 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 ./pg_dropdb {DB_NAME}
 ./my_dropdb {DB_NAME}
 
+#экспортировать базу
+./pg_export {DB_NAME}
+
+#импортировать базу
+./pg_import {DB_NAME} [FILE]
+./my_import {DB_NAME} [FILE]
+
 #создать резервную копию базы
 ./pg_dump {DB_NAME}
 
 #восстановить базу из резервной копии
-./pg_restore {DB_NAME}
+./pg_restore {DB_NAME} [FILE]
 
 #выполнить команду в терминале БД
 ./psql {COMMAND}

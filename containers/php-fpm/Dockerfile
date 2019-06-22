@@ -85,6 +85,8 @@ RUN set -x \
     && docker-php-ext-enable xdebug \
     && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
     && echo Europe/Moscow > /etc/timezone \
+#    && sed -i "s/user = www-data/user = docker/" /etc/php/7.3/fpm/pool.d/www.conf \
+#    && sed -i "s/group = www-data/group = docker/" /etc/php/7.3/fpm/pool.d/www.conf \
     && apk del \
         .buildDeps \
         .buildDeps-postgres \

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+    echo "Error params format, try: my_import DATABASE [FILE]"
+    exit 1
+fi
+
+if [ $# -eq 1 ]; then
+    file="$1.sql"
+else
+    file=$2
+fi
+
+dir=$(dirname $(readlink -e $0))
+
+bash ${dir}/my_dropdb $1
+bash ${dir}/my_createdb $1
+bash ${dir}/cmd mysql "cd /backup && mysql -u \${MYSQL_USER} -p\${MYSQL_PASSWORD} $1 < $file"
