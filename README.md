@@ -25,13 +25,21 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 #выполнить команду в контейнере
 ./cmd {CONTAINER} {COMMAND}
 
+#выполнить команду в контейнере (в папке проекта)
+./cli {CONTAINER} {PROJECT_NAME} {COMMAND}
+
 #выполнить команду в контейнере php-cli (в папке проекта)
 ./php-cli {PROJECT_NAME} {COMMAND}
 
 #выполнить команду в контейнере node-cli (в папке проекта)
 ./node-cli {PROJECT_NAME} {COMMAND}
 
+#выполнить команду в контейнере go-cli (в папке проекта)
+./go-cli {PROJECT_NAME} {COMMAND}
+
 #быстрые команды
+./go {PROJECT_NAME} {COMMAND}
+./dep {PROJECT_NAME} {COMMAND}
 ./composer {PROJECT_NAME} {COMMAND}
 ./symfony {PROJECT_NAME} {COMMAND}
 ./yii {PROJECT_NAME} {COMMAND}
@@ -62,7 +70,7 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 #восстановить базу из резервной копии
 ./pg_restore {DB_NAME} [FILE]
 
-#выполнить команду в терминале БД
+#выполнить команду в БД
 ./psql {COMMAND}
 ./mysql {COMMAND}
 
