@@ -243,12 +243,18 @@ services:
     build:
       context: ./containers/go
       dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    user: go
     ports:
       - 8080:8000
     stdin_open: true
     tty: true
     volumes:
       - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - go_src:/go/src:Z
+      - go_pkg-mod:/go/pkg/mod:Z
     networks:
       - web-net
 
@@ -391,6 +397,10 @@ volumes:
     name: "${COMPOSE_PROJECT_NAME}_confluent-schema_secrets"
   confluent-control-center_data:
     name: "${COMPOSE_PROJECT_NAME}_confluent-control-center_data"
+  go_src:
+    name: "${COMPOSE_PROJECT_NAME}_go_src"
+  go_pkg-mod:
+    name: "${COMPOSE_PROJECT_NAME}_go_pkg-mod"
   node-cli_yarn:
     name: "${COMPOSE_PROJECT_NAME}_node-cli_yarn"
   node-cli_npm:
