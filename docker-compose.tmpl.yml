@@ -23,6 +23,7 @@ services:
       - discovery.type=single-node
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
+      - xpack.ml.enabled=false
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       #- "discovery.zen.ping.unicast.hosts=elasticsearch"
     ulimits:
