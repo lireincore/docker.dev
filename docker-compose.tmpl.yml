@@ -18,7 +18,7 @@ services:
 
   elasticsearch:
     container_name: "${COMPOSE_PROJECT_NAME}_elasticsearch"
-    image: elasticsearch:7.0.0
+    image: elasticsearch:7.3.0
     environment:
       - discovery.type=single-node
       - cluster.name=docker-cluster
@@ -40,7 +40,7 @@ services:
 
   kibana:
     container_name: "${COMPOSE_PROJECT_NAME}_kibana"
-    image: kibana:7.0.0
+    image: kibana:7.3.0
     ports:
       - 5601:5601
     networks:
