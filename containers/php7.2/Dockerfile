@@ -41,8 +41,8 @@ RUN set -x \
         imagemagick-dev \
     && apk add --no-cache --virtual .buildDeps-memcached \
         libmemcached-dev \
-#    && apk add --no-cache --virtual .buildDeps-rdkafka \
-#        librdkafka-dev \
+    && apk add --no-cache --virtual .buildDeps-rdkafka \
+       librdkafka-dev \
     && apk add --no-cache --virtual .buildDeps-mcrypt \
         libmcrypt-dev \
     && apk add --no-cache --virtual .buildDeps-ldap \
@@ -73,8 +73,8 @@ RUN set -x \
         imagemagick \
     && apk add --no-cache --virtual .runtimeDeps-memcached \
         libmemcached-libs \
-#    && apk add --no-cache --virtual .runtimeDeps-rdkafka \
-#        librdkafka \
+    && apk add --no-cache --virtual .runtimeDeps-rdkafka \
+        librdkafka \
     && apk add --no-cache --virtual .runtimeDeps-mcrypt \
         libmcrypt \
     && apk add --no-cache --virtual .runtimeDeps-ldap \
@@ -86,7 +86,7 @@ RUN set -x \
 #    && pecl install gmagick-beta \
     && pecl install imagick \
     && pecl install memcached \
-#    && pecl install rdkafka \
+    && pecl install rdkafka \
     && pecl install redis \
     && pecl install apcu \
     && pecl install mcrypt \
@@ -94,7 +94,7 @@ RUN set -x \
 #    && docker-php-ext-enable gmagick \
     && docker-php-ext-enable imagick \
     && docker-php-ext-enable memcached \
-#    && docker-php-ext-enable rdkafka \
+    && docker-php-ext-enable rdkafka \
     && docker-php-ext-enable redis \
     && docker-php-ext-enable apcu \
     && docker-php-ext-enable mcrypt \
@@ -106,8 +106,8 @@ RUN set -x \
     && mv phpunit.phar /usr/local/bin/phpunit \
     && cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
     && echo Europe/Moscow > /etc/timezone \
-#    && sed -i "s/user = www-data/user = docker/" /etc/php/7.3/fpm/pool.d/www.conf \
-#    && sed -i "s/group = www-data/group = docker/" /etc/php/7.3/fpm/pool.d/www.conf \
+#    && sed -i "s/user = www-data/user = docker/" /etc/php/7.2/fpm/pool.d/www.conf \
+#    && sed -i "s/group = www-data/group = docker/" /etc/php/7.2/fpm/pool.d/www.conf \
     && apk del \
         .buildDeps \
         .buildDeps-postgres \
@@ -118,7 +118,7 @@ RUN set -x \
 #        .buildDeps-gmagick \
         .buildDeps-imagick \
         .buildDeps-memcached \
-#        .buildDeps-rdkafka \
+        .buildDeps-rdkafka \
         .buildDeps-mcrypt \
         .buildDeps-ldap \
     && rm -rf /var/cache/apk/* /var/tmp/* /tmp/*
