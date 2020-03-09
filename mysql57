@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+dir=$(dirname $(readlink -e $0))
+
+if [ $# -ne 0 ]; then
+    bash ${dir}/cli mysql57 "mysql -u \${MYSQL_USER} -p\${MYSQL_PASSWORD} -e \"$*;\""
+else
+    bash ${dir}/cli mysql57 "mysql -u \${MYSQL_USER} -p\${MYSQL_PASSWORD}"
+fi

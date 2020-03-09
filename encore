@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/node-cli $project "./node_modules/.bin/encore $*"
+bash ${dir}/cmd node $project "./node_modules/.bin/encore $*"

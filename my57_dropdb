@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Error params format, try: my57_dropdb DATABASE"
+    exit 1
+fi
+
+dir=$(dirname $(readlink -e $0))
+
+bash ${dir}/cli mysql57 "mysql -u \${MYSQL_USER} -p\${MYSQL_PASSWORD} -e \"DROP DATABASE IF EXISTS $1;\""

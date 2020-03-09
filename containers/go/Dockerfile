@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine3.10
+FROM golang:1.14-alpine3.11
 
 ARG host_group_id
 ARG host_user_id

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
-    echo "Error params format, try: symfony PROJECT [COMMAND] [OPTIONS]"
+    echo "Error params format, try: php PROJECT [COMMAND] [OPTIONS]"
     exit 1
 fi
 
@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/cmd php74 $project "./bin/console $*"
+bash ${dir}/cmd php74 $project "php $*"

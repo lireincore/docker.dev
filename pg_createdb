@@ -9,4 +9,4 @@ fi
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/cmd postgres "psql -U \${POSTGRES_USER} -c \"CREATE DATABASE $1;\""
+bash ${dir}/cli postgres "psql -U \${POSTGRES_USER} -c \"CREATE DATABASE $1;\""

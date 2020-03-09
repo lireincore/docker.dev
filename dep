@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/go-cli $project "dep $*"
+bash ${dir}/cmd go $project "dep $*"

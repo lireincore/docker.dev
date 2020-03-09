@@ -23,26 +23,20 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 
 ``` bash
 #выполнить команду в контейнере
-./cmd {CONTAINER} {COMMAND}
+./cli {CONTAINER} {COMMAND}
 
 #выполнить команду в контейнере (в папке проекта)
-./cli {CONTAINER} {PROJECT_NAME} {COMMAND}
-
-#выполнить команду в контейнере php-cli (в папке проекта)
-./php-cli {PROJECT_NAME} {COMMAND}
-
-#выполнить команду в контейнере node-cli (в папке проекта)
-./node-cli {PROJECT_NAME} {COMMAND}
-
-#выполнить команду в контейнере go-cli (в папке проекта)
-./go-cli {PROJECT_NAME} {COMMAND}
+./cmd {CONTAINER} {PROJECT_NAME} {COMMAND}
 
 #быстрые команды
 ./go {PROJECT_NAME} {COMMAND}
+./php {PROJECT_NAME} {COMMAND}
 ./dep {PROJECT_NAME} {COMMAND}
 ./composer {PROJECT_NAME} {COMMAND}
 ./symfony {PROJECT_NAME} {COMMAND}
 ./yii {PROJECT_NAME} {COMMAND}
+./doctrine {PROJECT_NAME} {COMMAND}
+./doctrine-migrations {PROJECT_NAME} {COMMAND}
 ./yarn {PROJECT_NAME} {COMMAND}
 ./npm {PROJECT_NAME} {COMMAND}
 ./webpack {PROJECT_NAME} {COMMAND}
@@ -51,18 +45,21 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 
 #создать базу
 ./pg_createdb {DB_NAME}
-./my_createdb {DB_NAME}
+./my57_createdb {DB_NAME}
+./my80_createdb {DB_NAME}
 
 #удалить базу
 ./pg_dropdb {DB_NAME}
-./my_dropdb {DB_NAME}
+./my57_dropdb {DB_NAME}
+./my80_dropdb {DB_NAME}
 
 #экспортировать базу
 ./pg_export {DB_NAME}
 
 #импортировать базу
 ./pg_import {DB_NAME} [FILE]
-./my_import {DB_NAME} [FILE]
+./my57_import {DB_NAME} [FILE]
+./my80_import {DB_NAME} [FILE]
 
 #создать резервную копию базы
 ./pg_dump {DB_NAME}
@@ -72,9 +69,11 @@ cp containers/nginx/tmpl/* containers/nginx/conf
 
 #выполнить команду в БД
 ./psql {COMMAND}
-./mysql {COMMAND}
+./mysql57 {COMMAND}
+./mysql80 {COMMAND}
 
 #работать с терминалом БД
 ./psql
-./mysql
+./mysql57
+./mysql80
 ```

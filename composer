@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/php-cli $project "composer $*"
+bash ${dir}/cmd php74 $project "composer $*"

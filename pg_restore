@@ -15,4 +15,4 @@ fi
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/cmd postgres "cd /var/lib/postgresql/backup && pg_restore -c -d $1 -U \${POSTGRES_USER} -j 8 $file"
+bash ${dir}/cli postgres "cd /var/lib/postgresql/backup && pg_restore -c -d $1 -U \${POSTGRES_USER} -j 8 $file"

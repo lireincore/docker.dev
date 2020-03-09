@@ -1,4 +1,4 @@
-FROM node:12.0-alpine
+FROM node:13.10-alpine3.11
 
 ARG host_group_id
 ARG host_user_id
@@ -19,6 +19,7 @@ RUN set -x \
     && apk add --no-cache --virtual .buildDeps \
         tzdata \
     && apk add --no-cache --virtual .runtimeDeps \
+#        npm \
         pkgconfig \
         autoconf \
         automake \
@@ -26,7 +27,21 @@ RUN set -x \
         nasm \
         build-base \
         zlib-dev \
-    && npm install -g npm \
+#        git \
+#        alpine-sdk  \
+#        zlib \
+#        zlib-dev \
+#        libpng \
+#        libpng-dev\
+#        libwebp \
+#        libwebp-dev \
+#        libjpeg-turbo \
+#        libjpeg-turbo-dev \
+#        lcms2-dev \
+#        bash \
+#        gcc \
+#        g++ \
+#    && npm install -g npm \
 #    && npm install -g imagemin \
 #    && npm install -g gulp-imagemin \
 #    && npm install -g optipng-bin \

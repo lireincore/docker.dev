@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/php-cli $project "./vendor/bin/phpunit $*"
+bash ${dir}/cmd php74 $project "./vendor/bin/phpunit $*"

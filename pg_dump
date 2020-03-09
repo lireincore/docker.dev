@@ -11,4 +11,4 @@ fi
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/cmd postgres "cd /var/lib/postgresql/backup && pg_dump $1 -x -U \${POSTGRES_USER} -Fc -T 'logging*' -T 'reversions*' -T 'webhooks_logging*' > $1.gz"
+bash ${dir}/cli postgres "cd /var/lib/postgresql/backup && pg_dump $1 -x -U \${POSTGRES_USER} -Fc -T 'logging*' -T 'reversions*' -T 'webhooks_logging*' > $1.gz"

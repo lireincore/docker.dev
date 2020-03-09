@@ -5,7 +5,7 @@ set -euo pipefail
 dir=$(dirname $(readlink -e $0))
 
 if [ $# -ne 0 ]; then
-    bash ${dir}/cmd postgres "psql -U \${POSTGRES_USER} -c \"$*;\""
+    bash ${dir}/cli postgres "psql -U \${POSTGRES_USER} -c \"$*;\""
 else
-    bash ${dir}/cmd postgres "psql -U \${POSTGRES_USER}"
+    bash ${dir}/cli postgres "psql -U \${POSTGRES_USER}"
 fi

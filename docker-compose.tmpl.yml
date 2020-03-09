@@ -18,13 +18,18 @@ services:
 
   elasticsearch:
     container_name: "${COMPOSE_PROJECT_NAME}_elasticsearch"
-    image: elasticsearch:7.3.0
+    build:
+      context: ./containers/elasticsearch
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
     environment:
       - discovery.type=single-node
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - xpack.ml.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       #- "discovery.zen.ping.unicast.hosts=elasticsearch"
     ulimits:
       memlock:
@@ -36,12 +41,12 @@ services:
       - web-net
     healthcheck:
       test: "curl -f http://localhost:9200 || exit 1"
-      interval: 1s
-      retries: 20
+      interval: 5s
+      retries: 3
 
   kibana:
     container_name: "${COMPOSE_PROJECT_NAME}_kibana"
-    image: kibana:7.3.0
+    image: kibana:7.5.2
     ports:
       - 5601:5601
     networks:
@@ -51,7 +56,7 @@ services:
 
   postgres:
     container_name: "${COMPOSE_PROJECT_NAME}_postgres"
-    image: postgres:11.2-alpine
+    image: postgres:12.1-alpine
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -60,23 +65,6 @@ services:
     volumes:
       - ./backup/postgres:/var/lib/postgresql/backup:z
       - postgres_data:/var/lib/postgresql/data:Z
-    networks:
-      - web-net
-
-  mysql:
-    container_name: "${COMPOSE_PROJECT_NAME}_mysql"
-    image: mysql:5.7
-    #command: --sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
-    #command: --sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - 3306:3306
-    volumes:
-      - ./backup/mysql:/backup:z
-      - mysql_data:/var/lib/mysql:Z
     networks:
       - web-net
 
@@ -96,6 +84,40 @@ services:
       - web-net
     depends_on:
       - postgres
+
+  mysql57:
+    container_name: "${COMPOSE_PROJECT_NAME}_mysql57"
+    image: mysql:5.7
+    #command: --sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+    #command: --sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - ./backup/mysql:/backup:z
+      - mysql57_data:/var/lib/mysql:Z
+    networks:
+      - web-net
+
+  mysql80:
+    container_name: "${COMPOSE_PROJECT_NAME}_mysql80"
+    image: mysql:8.0
+    #command: --sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
+    command: '--default-authentication-plugin=mysql_native_password --sql_mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - ./backup/mysql:/backup:z
+      - mysql80_data:/var/lib/mysql:Z
+    networks:
+      - web-net
 
   zookeeper:
     container_name: "${COMPOSE_PROJECT_NAME}_zookeeper"
@@ -256,13 +278,14 @@ services:
       - ${SOURCE_DIR}:${TARGET_DIR}:z
       - go_src:/go/src:Z
       - go_pkg-mod:/go/pkg/mod:Z
+      #- ~/go:/go:z
     networks:
       - web-net
 
-  node-cli:
-    container_name: "${COMPOSE_PROJECT_NAME}_node-cli"
+  node:
+    container_name: "${COMPOSE_PROJECT_NAME}_node"
     build:
-      context: ./containers/node-cli
+      context: ./containers/node
       dockerfile: Dockerfile
       args:
         - host_group_id
@@ -272,35 +295,8 @@ services:
     tty: true
     volumes:
       - ${SOURCE_DIR}:${TARGET_DIR}:z
-      - node-cli_yarn:/home/node/.yarn:Z
-      - node-cli_npm:/home/node/.npm:Z
-    networks:
-      - web-net
-
-  php-cli:
-    container_name: "${COMPOSE_PROJECT_NAME}_php-cli"
-    build:
-      context: ./containers/php-cli
-      dockerfile: Dockerfile
-      args:
-        - host_group_id
-        - host_user_id
-    environment:
-      XDEBUG_CONFIG: "remote_host=${DOCKER_HOST_IP}"
-      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
-#    external_links:
-#      - nginx:project.loc
-    command: ["php", "-a"]
-    entrypoint: ["entrypoint.sh"]
-    user: www-data
-    stdin_open: true
-    tty: true
-    volumes:
-      - ${SOURCE_DIR}:${TARGET_DIR}:z
-      - ./containers/php-cli/php.ini:/usr/local/etc/php/php.ini:ro
-      - ./containers/php-cli/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
-      - php-cli_composer:/home/www-data/.composer:Z
-      - ~/.ssh:/home/www-data/.ssh:ro
+      - node_yarn:/home/node/.yarn:Z
+      - node_npm:/home/node/.npm:Z
     networks:
       - web-net
 
@@ -324,21 +320,87 @@ services:
     networks:
       - web-net
 
-  php-fpm:
-    container_name: "${COMPOSE_PROJECT_NAME}_php-fpm"
+  php72:
+    container_name: "${COMPOSE_PROJECT_NAME}_php72"
     build:
-      context: ./containers/php-fpm
+      context: ./containers/php7.2
       dockerfile: Dockerfile
       args:
         - host_group_id
         - host_user_id
     environment:
+      #XDEBUG_CONFIG: "remote_host=${DOCKER_HOST_IP}"
       PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
     #    external_links:
     #      - nginx:project.loc
+    #command: ["php", "-a"]
+    #entrypoint: ["entrypoint.sh"]
+    user: www-data
+    #stdin_open: true
+    #tty: true
     volumes:
       - ${SOURCE_DIR}:${TARGET_DIR}:z
-      - ./containers/php-fpm/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./containers/php7.2/php-fpm.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.2/php-cli.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.2/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - php72_composer:/home/www-data/.composer:Z
+      - ~/.ssh:/home/www-data/.ssh:ro
+    networks:
+      - web-net
+
+  php73:
+    container_name: "${COMPOSE_PROJECT_NAME}_php73"
+    build:
+      context: ./containers/php7.3
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    environment:
+      #XDEBUG_CONFIG: "remote_host=${DOCKER_HOST_IP}"
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+    #    external_links:
+    #      - nginx:project.loc
+    #command: ["php", "-a"]
+    #entrypoint: ["entrypoint.sh"]
+    user: www-data
+    #stdin_open: true
+    #tty: true
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./containers/php7.3/php-fpm.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.3/php-cli.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.3/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - php73_composer:/home/www-data/.composer:Z
+      - ~/.ssh:/home/www-data/.ssh:ro
+    networks:
+      - web-net
+
+  php74:
+    container_name: "${COMPOSE_PROJECT_NAME}_php74"
+    build:
+      context: ./containers/php7.4
+      dockerfile: Dockerfile
+      args:
+        - host_group_id
+        - host_user_id
+    environment:
+      #XDEBUG_CONFIG: "remote_host=${DOCKER_HOST_IP}"
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+    #    external_links:
+    #      - nginx:project.loc
+    #command: ["php", "-a"]
+    #entrypoint: ["entrypoint.sh"]
+    user: www-data
+    #stdin_open: true
+    #tty: true
+    volumes:
+      - ${SOURCE_DIR}:${TARGET_DIR}:z
+      - ./containers/php7.4/php-fpm.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.4/php-cli.ini:/usr/local/etc/php/php.ini:ro
+      #- ./containers/php7.4/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - php74_composer:/home/www-data/.composer:Z
+      - ~/.ssh:/home/www-data/.ssh:ro
     networks:
       - web-net
 
@@ -362,8 +424,6 @@ services:
       - ./containers/nginx/conf:/etc/nginx/conf.d:ro
     networks:
       - web-net
-    depends_on:
-      - php-fpm
 
 volumes:
   redis_data:
@@ -372,10 +432,12 @@ volumes:
     name: "${COMPOSE_PROJECT_NAME}_elasticsearch_data"
   postgres_data:
     name: "${COMPOSE_PROJECT_NAME}_postgres_data"
-  mysql_data:
-    name: "${COMPOSE_PROJECT_NAME}_mysql_data"
   pgadmin_data:
     name: "${COMPOSE_PROJECT_NAME}_pgadmin_data"
+  mysql57_data:
+    name: "${COMPOSE_PROJECT_NAME}_mysql57_data"
+  mysql80_data:
+    name: "${COMPOSE_PROJECT_NAME}_mysql80_data"
   zookeeper_data:
     name: "${COMPOSE_PROJECT_NAME}_zookeeper_data"
   zookeeper_datalog:
@@ -402,12 +464,16 @@ volumes:
     name: "${COMPOSE_PROJECT_NAME}_go_src"
   go_pkg-mod:
     name: "${COMPOSE_PROJECT_NAME}_go_pkg-mod"
-  node-cli_yarn:
-    name: "${COMPOSE_PROJECT_NAME}_node-cli_yarn"
-  node-cli_npm:
-    name: "${COMPOSE_PROJECT_NAME}_node-cli_npm"
-  php-cli_composer:
-    name: "${COMPOSE_PROJECT_NAME}_php-cli_composer"
+  node_yarn:
+    name: "${COMPOSE_PROJECT_NAME}_node_yarn"
+  node_npm:
+    name: "${COMPOSE_PROJECT_NAME}_node_npm"
+  php72_composer:
+    name: "${COMPOSE_PROJECT_NAME}_php72_composer"
+  php73_composer:
+    name: "${COMPOSE_PROJECT_NAME}_php73_composer"
+  php74_composer:
+    name: "${COMPOSE_PROJECT_NAME}_php74_composer"
 
 networks:
   web-net:

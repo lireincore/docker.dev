@@ -13,4 +13,4 @@ shift
 
 dir=$(dirname $(readlink -e $0))
 
-bash ${dir}/node-cli $project "yarn $*"
+bash ${dir}/cmd node $project "yarn $*"
